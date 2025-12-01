@@ -16,11 +16,12 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Mal.Mdk2.References" Version="2.2.5"/>
+        <PackageReference Include="Mal.Mdk2.References" Version="2.2.5" />
     </ItemGroup>
     <ItemGroup>
-        <None Remove="Instructions.readme"/>
-        <AdditionalFiles Include="Instructions.readme"/>
-        <AdditionalFiles Include="thumb.png"/>
+        <None Remove="Instructions.readme" />
+        <AdditionalFiles Include="Instructions.readme" />
+        <AdditionalFiles Include="thumb.png" />
     </ItemGroup>
+   
 </Project>
