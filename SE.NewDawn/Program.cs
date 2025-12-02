@@ -22,6 +22,8 @@ namespace IngameScript
 {
     public partial class Program : MyGridProgram
     {
+        private readonly CoreSystem _coreSystem;
+        
         // This file contains your actual script.
         //
         // You can either keep all your code here, or you can create separate
@@ -34,6 +36,10 @@ namespace IngameScript
 
         public Program()
         {
+            _coreSystem = new CoreSystem(program: this);
+
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
+            
             // The constructor, called only once every session and
             // always before any other method is called. Use it to
             // initialize your script. 
@@ -67,6 +73,28 @@ namespace IngameScript
             // 
             // The method itself is required, but the arguments above
             // can be removed if not needed.
+            
+            switch (updateSource)
+            {
+                case UpdateType.Update100:
+                    _coreSystem.Update();
+                    break;
+                
+                case UpdateType.Terminal:
+                case UpdateType.Trigger:
+                    _coreSystem.ExecuteCommand(argument);
+                    break;
+
+                case UpdateType.None:
+                case UpdateType.Mod:
+                case UpdateType.Script:
+                case UpdateType.Update1:
+                case UpdateType.Update10:
+                case UpdateType.Once:
+                case UpdateType.IGC:
+                default:
+                    break;
+            }
         }
     }
 }
