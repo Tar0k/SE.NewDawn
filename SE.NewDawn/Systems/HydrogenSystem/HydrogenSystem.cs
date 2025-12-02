@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Sandbox.ModAPI.Ingame;
 
 namespace IngameScript
@@ -14,21 +15,28 @@ namespace IngameScript
         private bool _firstRun = true;
         private double _warningLevel = 0.2;
         private double _alarmLevel = 0.1;
-        private List<IMyTextPanel> _controlPanels;
-        
-        public Action<decimal> WarningLevelTriggered { get; set; }
-        public Action<decimal> AlarmLevelTriggered { get; set; }
+        private readonly List<IMyTextPanel> _controlPanels;
 
-        public HydrogenSystem(Program program, CoreSystem core, ILogger logger) : base(logger)
+        public event Action<decimal> WarningLevelTriggered;
+        public event Action<decimal> AlarmLevelTriggered;
+
+        public HydrogenSystem(Program program, CoreSystem core, ILogger logger, double warningLevel = 0.2, double alarmLevel = 0.1) : base(logger)
         {
             SystemName = "Система контроля водорода";
             program.GridTerminalSystem.GetBlocksOfType(_hydrogenTanks);
             _coreSystem = core;
             _coreSystem.UpdateSystems += Update;
             _logger = logger;
+            
             var panels = new List<IMyTextPanel>();
             program.GridTerminalSystem.GetBlocksOfType(panels);
             _controlPanels = panels.Where(p => p.CustomData.Contains(RefCustomData)).ToList();
+            
+            WarningLevel = warningLevel;
+            AlarmLevel = alarmLevel;
+            
+            CheckFirstRun();
+            CheckAvailableHydrogenTanks();
         }
         
         public override void Update()
@@ -77,29 +85,18 @@ namespace IngameScript
                 default:
                     break;
             }
+            UpdatePanels();
         }
 
         /// <summary>
         /// Максимальная емкость, в литрах
         /// </summary>
-        public decimal MaxCapacity
-        {
-            get
-            {
-                return (decimal)_hydrogenTanks.Select(t => t.Capacity).Sum();
-            }
-        }
+        public decimal MaxCapacity => (decimal)_hydrogenTanks.Select(t => t.Capacity).Sum();
         
         /// <summary>
         /// Фактический водород, в литрах
         /// </summary>
-        public decimal CurrentCapacity
-        {
-            get
-            {
-                return (decimal)_hydrogenTanks.Select(t => t.Capacity * t.FilledRatio).Sum();
-            }
-        }
+        public decimal CurrentCapacity => (decimal)_hydrogenTanks.Select(CalcTankCurrentCapacity).Sum();
 
         /// <summary>
         /// Текущая заполненность, в процентах
@@ -230,6 +227,40 @@ namespace IngameScript
                     IsActive = true
                 });
             }
+        }
+
+        /// <summary>
+        /// Обновление информации на контрольных панелях
+        /// </summary>
+        private void UpdatePanels()
+        {
+            foreach (var controlPanel in _controlPanels)
+            {
+                var str = new StringBuilder();
+                str.AppendLine($"{SystemName}");
+                str.AppendLine("----------------");
+                str.AppendLine($"Общий: {Level * 100}%,  {CurrentCapacity} / {MaxCapacity}");
+                str.AppendLine("----------------");
+                foreach (var hydrogenTank in _hydrogenTanks)
+                {
+                    var currentCapacity = CalcTankCurrentCapacity(hydrogenTank);
+                    var level = CalcTankLevel(hydrogenTank);
+                    str.AppendLine($"{hydrogenTank.CustomName}: {level * 100}%, {currentCapacity} / {hydrogenTank.Capacity}");
+                }
+                controlPanel.WriteText(str.ToString());
+            }
+        }
+
+        private static double CalcTankCurrentCapacity(IMyGasTank tank)
+        {
+            return tank.Capacity * tank.FilledRatio;
+        }
+
+        private static double CalcTankLevel(IMyGasTank tank)
+        {
+            if (tank.Capacity == 0)
+                return 0;
+            return CalcTankCurrentCapacity(tank) / tank.Capacity;
         }
     }
 }
