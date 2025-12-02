@@ -17,7 +17,13 @@ namespace IngameScript
         private readonly List<SafeDoor> _safeDoors = new List<SafeDoor>();
         private bool _firstRun = true;
         private bool _enemyDetected;
+        /// <summary>
+        /// Событие, обнаружен враг
+        /// </summary>
         public event Action<AlarmMessage> EnemyDetected;
+        /// <summary>
+        /// Событие, обновление состояние дверей
+        /// </summary>
         public event Action UpdateDoors;
         
         public SafetySystem(Program program, CoreSystem coreSystem, ILogger logger) : base(logger)

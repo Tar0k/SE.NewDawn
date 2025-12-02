@@ -12,6 +12,7 @@ namespace IngameScript
         private readonly LogSystem _logSystem;
         private readonly LightSystem _lightSystem;
         private readonly SoundSystem _soundSystem;
+        private readonly HydrogenSystem _hydrogenSystem;
         private readonly SafetySystem _safetySystem;
         private readonly IEnumerable<BaseSystem> _systems;
 
@@ -29,6 +30,7 @@ namespace IngameScript
             
             _lightSystem = new LightSystem(program, this, _logSystem);
             _soundSystem = new SoundSystem(program, this, _logSystem);
+            _hydrogenSystem = new HydrogenSystem(program, this, _logSystem);
             _safetySystem = new SafetySystem(program, this, _logSystem);
             _safetySystem.EnemyDetected += OnSystemAlarmTriggered;
             

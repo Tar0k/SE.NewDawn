@@ -9,6 +9,7 @@ namespace IngameScript
         StartupInfo,
         InitCount,
         CommandInfo,
+        SystemWarning,
         EnemyDetected,
         Unknown
     }
