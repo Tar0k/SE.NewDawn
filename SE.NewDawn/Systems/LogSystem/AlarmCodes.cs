@@ -1,5 +1,8 @@
 namespace IngameScript
 {
+    /// <summary>
+    /// Коды тревог
+    /// </summary>
     public enum AlarmCodes
     {
         OnOffInfo,

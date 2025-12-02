@@ -5,6 +5,9 @@ using VRageMath;
 
 namespace IngameScript
 {
+    /// <summary>
+    /// Система управления освещением
+    /// </summary>
     public class LightSystem : BaseSystem, IDisposable
     {
         private readonly CoreSystem _coreSystem;
@@ -54,7 +57,9 @@ namespace IngameScript
             TurnOn();
         }
 
-
+        /// <summary>
+        /// Текущее состояние источников света
+        /// </summary>
         private LightStates LightState
         {
             get
@@ -81,8 +86,10 @@ namespace IngameScript
                 }
             }
         }
-
-        //Переключатель света
+        
+        /// <summary>
+        /// Переключатель света
+        /// </summary>
         private void SwitchLight()
         {
             switch (LightState)
@@ -103,8 +110,10 @@ namespace IngameScript
                     break;
             }
         }
-
-        // Включить свет
+        
+        /// <summary>
+        /// Включить свет
+        /// </summary>
         private void TurnOn()
         {
             foreach (var light in  _lights)
@@ -124,8 +133,10 @@ namespace IngameScript
                 IsActive = true
             });
         }
-
-        // Выключить свет
+        
+        /// <summary>
+        /// Выключить свет
+        /// </summary>
         private void TurnOff()
         {
             foreach (var light in  _lights)
@@ -146,16 +157,21 @@ namespace IngameScript
             });
 
         }
-
-        // Переключить тревогу без условий
+        
+        /// <summary>
+        /// Переключить тревогу без условий
+        /// </summary>
         private void SwitchAlarm()
         {
             if (!_lightOn) return;
             if (LightState == LightStates.Alarm ) AlarmOff();
             else AlarmOn();
         }
-
-        // Переключить тревогу по сообщению
+        
+        /// <summary>
+        /// Переключить тревогу по сообщению
+        /// </summary>
+        /// <param name="alarm">Тревога</param>
         private void SwitchAlarm(AlarmMessage alarm)
         {
             if (alarm.IsActive)
@@ -169,6 +185,9 @@ namespace IngameScript
             }
         }
         
+        /// <summary>
+        /// Включить тревогу
+        /// </summary>
         private void AlarmOn()
         {
             if (!_lightOn) return;
@@ -181,11 +200,17 @@ namespace IngameScript
 
         }
 
+        /// <summary>
+        /// Выключить тревогу
+        /// </summary>
         private void AlarmOff()
-        {
-                Default();
+        { 
+            Default();
         }
 
+        /// <summary>
+        /// Переключить источники света в состояние по умолчанию
+        /// </summary>
         private void Default()
         {
             if (!_lightOn) return;
@@ -196,7 +221,7 @@ namespace IngameScript
             }
             _lightState = LightStates.On;
         }
-
+        
         public override void Update()
         {
             if (_firstRun)
@@ -205,6 +230,9 @@ namespace IngameScript
             
         }
         
+        /// <summary>
+        /// Проверка при первом запуске
+        /// </summary>
         private void CheckFirstRun()
         {
             if (_firstRun && _lights.Count > 0)
@@ -221,6 +249,9 @@ namespace IngameScript
             _firstRun = false;
         }
 
+        /// <summary>
+        ///  Проверка доступных источников света
+        /// </summary>
         private void CheckAvailableLights()
         {
             if (_lights.Count <= 0)

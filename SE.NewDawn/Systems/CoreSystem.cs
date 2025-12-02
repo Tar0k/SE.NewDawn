@@ -8,13 +8,17 @@ namespace IngameScript
     {
         public event Action UpdateSystems;
         public event Action<AlarmMessage> AlarmTriggered;
-
+        
         private readonly LogSystem _logSystem;
         private readonly LightSystem _lightSystem;
         private readonly SoundSystem _soundSystem;
         private readonly SafetySystem _safetySystem;
         private readonly IEnumerable<BaseSystem> _systems;
 
+        /// <summary>
+        /// Центральная система управления гридом
+        /// </summary>
+        /// <param name="program">ссылка на программу</param>
         public CoreSystem(Program program)
         {
             SystemName = "Центральная система";
@@ -34,6 +38,9 @@ namespace IngameScript
             };
         }
         
+        /// <summary>
+        /// Состояние системы
+        /// </summary>
         public override SystemStates SystemState {
             get
             {
@@ -49,11 +56,20 @@ namespace IngameScript
             protected set { }
         }
 
+        /// <summary>
+        /// Метод обновления системы.
+        /// Должен вызываться в каждом цикле для обновления данных
+        /// </summary>
         public override void Update()
         {
             UpdateSystems?.Invoke();
         }
 
+        /// <summary>
+        /// Метод обработки команды от других систем.
+        /// </summary>
+        /// <param name="command">Входящая команда</param>
+        /// <returns>Результат выполнения команды</returns>
         public override bool ExecuteCommand(string command)
         {
             // Проверки полученной команды на формат
@@ -78,6 +94,10 @@ namespace IngameScript
             return result;
         }
 
+        /// <summary>
+        /// Метод, вызываемые при срабатывании тревоги
+        /// </summary>
+        /// <param name="message"></param>
         private void OnSystemAlarmTriggered(AlarmMessage message)
         {
             if (message.Type == MessageType.Error && message.IsActive)

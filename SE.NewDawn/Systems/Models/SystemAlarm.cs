@@ -1,5 +1,8 @@
 namespace IngameScript
 {
+    /// <summary>
+    /// Тревога в системе
+    /// </summary>
     public class SystemAlarm
     {
         public AlarmCodes AlarmCode { get; set; }

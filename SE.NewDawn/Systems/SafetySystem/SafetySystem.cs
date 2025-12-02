@@ -6,6 +6,9 @@ using Sandbox.ModAPI.Ingame;
 
 namespace IngameScript
 {
+    /// <summary>
+    /// Система безопасности
+    /// </summary>
     public class SafetySystem : BaseSystem, IDisposable
     {
         private readonly CoreSystem _coreSystem;
@@ -91,6 +94,9 @@ namespace IngameScript
             UpdateDoors?.Invoke();
         }
         
+        /// <summary>
+        /// Проверка при первом запуске
+        /// </summary>
         private void CheckFirstRun()
         {
             if (_firstRun)
@@ -122,6 +128,9 @@ namespace IngameScript
             _firstRun = false;
         }
 
+        /// <summary>
+        /// Проверка наличия доступных туррелей
+        /// </summary>
         private void CheckAvailableTurrets()
         {
             if (_turrets.Count <= 0)
@@ -137,6 +146,9 @@ namespace IngameScript
             }
         }
         
+        /// <summary>
+        /// Проверка доступных безопасных дверей
+        /// </summary>
         private void CheckAvailableSafeDoors()
         {
             if (_safeDoors.Count <= 0)
@@ -152,6 +164,10 @@ namespace IngameScript
             }
         }
 
+        /// <summary>
+        /// Логирование изменения статуса дверей
+        /// </summary>
+        /// <param name="door"></param>
         private void LogDoorStatusChanges(IMyDoor door)
         {
             switch (door.Status)

@@ -1,5 +1,8 @@
 namespace IngameScript
 {
+    /// <summary>
+    /// Состояние системы
+    /// </summary>
     public enum SystemStates
     {
         Active,

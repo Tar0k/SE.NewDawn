@@ -20,15 +20,27 @@ namespace IngameScript
         {
             Logger = logger;
         }
-
-        // Название системы для отображения в UI
+        
+        /// <summary>
+        /// Название системы для отображения в UI
+        /// </summary>
         public string SystemName { get; set; }
-
-        // Ссылочное название системы в CustomData для определения принадлежности
+        
+        /// <summary>
+        /// Ссылочное название системы в CustomData для определения принадлежности
+        /// </summary>
         public string RefCustomData { get; set; }
-        // Текущий статус системы
+        
+        /// <summary>
+        /// Текущий статус системы
+        /// </summary>
         public virtual SystemStates SystemState { get; protected set; } = SystemStates.Active;
 
+        /// <summary>
+        /// Метод обработки команды от других систем.
+        /// </summary>
+        /// <param name="command">Входящая команда</param>
+        /// <returns>Результат выполнения команды</returns>
         public virtual bool ExecuteCommand(string command)
         {
             // Проверки полученной команды на формат
@@ -85,12 +97,20 @@ namespace IngameScript
             return false;
         }
 
+        /// <summary>
+        /// Получение доступных комманд от системы
+        /// </summary>
+        /// <returns>Список доступных комманд</returns>
         public virtual IEnumerable<string> GetCommands()
         {
             return AvailableCommands.Keys.Select(k => $"{SystemName} {k}");
         }
         
         // Метод обновления данных в системе.
+        /// <summary>
+        /// Метод обновления системы.
+        /// Должен вызываться в каждом цикле для обновления данных
+        /// </summary>
         public abstract void Update();
 
         public override string ToString()

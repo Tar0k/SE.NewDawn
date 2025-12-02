@@ -1,5 +1,8 @@
 namespace IngameScript
 {
+    /// <summary>
+    /// Сообщение о тревоге
+    /// </summary>
     public class AlarmMessage : SystemAlarm
     {
         public AlarmMessage() {}

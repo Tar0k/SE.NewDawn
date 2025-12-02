@@ -7,6 +7,9 @@ using VRage.Game.GUI.TextPanel;
 
 namespace IngameScript
 {
+    /// <summary>
+    /// Система логирования
+    /// </summary>
     public sealed class LogSystem : BaseSystem, ILogger, IDisposable
     {
         private readonly CoreSystem _coreSystem;
@@ -32,6 +35,11 @@ namespace IngameScript
             _coreSystem.UpdateSystems += Update;
         }
 
+        /// <summary>
+        /// Запись сообщения о тревоге
+        /// </summary>
+        /// <param name="message">Сообщение о тревоге</param>
+        /// <returns>Результат операции</returns>
         public bool WriteText(AlarmMessage message)
         {
             return SystemState == SystemStates.Active && WriteText(message.AlarmCode, message.Message, message.System, message.IsActive);
@@ -88,8 +96,10 @@ namespace IngameScript
                 textPanel.WriteText(str.ToString());
             }
         }
-
-        // Проверяет состояние системы и информирует подписчиков об изменении
+        
+        /// <summary>
+        /// Проверяет состояние системы и информирует подписчиков об изменении
+        /// </summary>
         private void CheckSystemState()
         {
             // Сохраняем тревоги с предыдущего цикла (до обработки)
@@ -101,6 +111,9 @@ namespace IngameScript
             CheckAvailablePanels();
         }
 
+        /// <summary>
+        /// Проверка при первом включении
+        /// </summary>
         private void CheckFirstRun()
         {
             if (_firstRun && _logPanels.Count > 0)
@@ -117,6 +130,9 @@ namespace IngameScript
             _firstRun = false;
         }
 
+        /// <summary>
+        /// Проверка доступных панелей для отображения
+        /// </summary>
         private void CheckAvailablePanels()
         {
             if (_logPanels.Count <= 0 && !_alarms.Select(a => a.AlarmCode).Contains(AlarmCodes.InitCount))
@@ -131,7 +147,10 @@ namespace IngameScript
                 _alarms.RemoveAll(a => a.AlarmCode == AlarmCodes.InitCount);
         }
         
-        // Настройка параметров панелей
+        /// <summary>
+        /// Настройка параметров панелей
+        /// </summary>
+        /// <param name="logPanels">Панели для настройки</param>
         private static void ConfigurePanels(List<IMyTextPanel> logPanels)
         {
             foreach (var logPanel in logPanels)

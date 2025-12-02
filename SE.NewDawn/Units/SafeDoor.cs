@@ -3,12 +3,19 @@ using Sandbox.ModAPI.Ingame;
 
 namespace IngameScript
 {
+    /// <summary>
+    /// Блок безопасной двери
+    /// </summary>
     internal class SafeDoor: IDisposable
     {
         private readonly SafetySystem _safetySystem;
         private readonly IMyDoor _door;
         private int _openDoorTimer;
         private DoorStatus _prevDoorStatus;
+        
+        /// <summary>
+        /// Событие по имзменению статуса двери
+        /// </summary>
         public event Action<IMyDoor> DoorStatusChanged;
         
         public SafeDoor(IMyDoor door, SafetySystem safetySystem, ILogger logger)
@@ -20,6 +27,10 @@ namespace IngameScript
             Update();
         }
 
+        /// <summary>
+        /// Обновление состояние безопасной двери
+        /// Должно вызываться каждый цикл
+        /// </summary>
         private void Update()
         {
             switch (_door.Status)
