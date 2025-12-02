@@ -6,6 +6,9 @@ using Sandbox.ModAPI.Ingame;
 
 namespace IngameScript
 {
+    /// <summary>
+    /// Система контроля водорода
+    /// </summary>
     public class HydrogenSystem : BaseSystem
     {
         private readonly CoreSystem _coreSystem;
@@ -13,9 +16,11 @@ namespace IngameScript
         
         private readonly List<IMyGasTank> _hydrogenTanks = new List<IMyGasTank>();
         private bool _firstRun = true;
-        private double _warningLevel = 0.2;
-        private double _alarmLevel = 0.1;
+        private double _warningLevel;
+        private double _alarmLevel;
         private readonly List<IMyTextPanel> _controlPanels;
+        private bool _stockPile;
+        private bool _autoRefillBottles;
 
         public event Action<decimal> WarningLevelTriggered;
         public event Action<decimal> AlarmLevelTriggered;
@@ -24,19 +29,26 @@ namespace IngameScript
         {
             SystemName = "Система контроля водорода";
             program.GridTerminalSystem.GetBlocksOfType(_hydrogenTanks);
+            _hydrogenTanks = _hydrogenTanks
+                .Where(t => t.IsSameConstructAs(program.Me))
+                .ToList();
             _coreSystem = core;
             _coreSystem.UpdateSystems += Update;
             _logger = logger;
             
             var panels = new List<IMyTextPanel>();
             program.GridTerminalSystem.GetBlocksOfType(panels);
-            _controlPanels = panels.Where(p => p.CustomData.Contains(RefCustomData)).ToList();
+            _controlPanels = panels
+                .Where(p => p.IsSameConstructAs(program.Me) && p.CustomData.Contains(RefCustomData))
+                .ToList();
             
             WarningLevel = warningLevel;
             AlarmLevel = alarmLevel;
             
             CheckFirstRun();
             CheckAvailableHydrogenTanks();
+            StockPile = false;
+            AutoRefillBottles = false;
         }
         
         public override void Update()
@@ -191,7 +203,45 @@ namespace IngameScript
                 _alarmLevel = value;
             }
         }
-        
+
+        /// <summary>
+        /// Вкл/Выкл заполнение системы
+        /// </summary>
+        public bool StockPile
+        {
+            get
+            {
+                return _stockPile;
+            } 
+            set
+            {
+                foreach (var hydrogenTank in _hydrogenTanks)
+                {
+                    hydrogenTank.Stockpile = value;
+                }
+                _stockPile = value;
+            }
+        }
+
+        /// <summary>
+        /// Вкл/Выкл автозаполнение ситстемы
+        /// </summary>
+        public bool AutoRefillBottles
+        {
+            get
+            {
+                return _autoRefillBottles;
+            }
+            set
+            {
+                foreach (var hydrogenTank in _hydrogenTanks)
+                {
+                    hydrogenTank.AutoRefillBottles = value;
+                }
+                _autoRefillBottles = value;
+            }
+        }
+
         /// <summary>
         /// Проверка при первом запуске
         /// </summary>
@@ -239,23 +289,34 @@ namespace IngameScript
                 var str = new StringBuilder();
                 str.AppendLine($"{SystemName}");
                 str.AppendLine("----------------");
-                str.AppendLine($"Общий: {Level * 100}%,  {CurrentCapacity} / {MaxCapacity}");
+                str.AppendLine($"Общий: {Math.Round(Level * 100, 2)}%,  {CurrentCapacity} / {MaxCapacity}");
                 str.AppendLine("----------------");
                 foreach (var hydrogenTank in _hydrogenTanks)
                 {
                     var currentCapacity = CalcTankCurrentCapacity(hydrogenTank);
                     var level = CalcTankLevel(hydrogenTank);
-                    str.AppendLine($"{hydrogenTank.CustomName}: {level * 100}%, {currentCapacity} / {hydrogenTank.Capacity}");
+                    str.AppendLine($"{hydrogenTank.CustomName}: {Math.Round(level * 100, 2)}%, {currentCapacity} / {hydrogenTank.Capacity}");
                 }
+                str.AppendLine("----------------");
                 controlPanel.WriteText(str.ToString());
             }
         }
 
+        /// <summary>
+        /// Рассчитать фактический объем газа в баке, литры
+        /// </summary>
+        /// <param name="tank">Резервуар для расчета</param>
+        /// <returns>Фактический объем, литры</returns>
         private static double CalcTankCurrentCapacity(IMyGasTank tank)
         {
             return tank.Capacity * tank.FilledRatio;
         }
 
+        /// <summary>
+        /// Рассчитать уровень в баке, в процентах
+        /// </summary>
+        /// <param name="tank">Резервуар для расчета</param>
+        /// <returns>Уровень в баке, в процентах</returns>
         private static double CalcTankLevel(IMyGasTank tank)
         {
             if (tank.Capacity == 0)

@@ -19,7 +19,7 @@ namespace IngameScript
         /// <summary>
         /// Центральная система управления гридом
         /// </summary>
-        /// <param name="program">ссылка на программу</param>
+        /// <param name="program">Ссылка на программу</param>
         public CoreSystem(Program program)
         {
             SystemName = "Центральная система";
@@ -36,7 +36,7 @@ namespace IngameScript
             
             _systems = new List<BaseSystem>
             {
-                _logSystem, _lightSystem,  _soundSystem, _safetySystem
+                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem
             };
         }
         
