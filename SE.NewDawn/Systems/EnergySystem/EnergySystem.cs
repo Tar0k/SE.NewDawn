@@ -16,6 +16,9 @@ namespace IngameScript.EnergySystem
         private readonly List<IMyWindTurbine> _windTurbines = new List<IMyWindTurbine>();
         private readonly List<IMySolarPanel> _solarPanels = new List<IMySolarPanel>();
         private readonly List<IMyTerminalBlock> _hydrogenEngines;
+        private readonly List<IMyTextPanel> _controlPanels;
+
+        private BatteriesChargeMode _chargeMode = BatteriesChargeMode.Auto;
         
         public EnergySystem(Program program, CoreSystem core, ILogger logger) : base(logger)
         {
@@ -37,22 +40,129 @@ namespace IngameScript.EnergySystem
                     b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/LargeHydrogenEngine" 
                     || b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/SmallHydrogenEngine")
                 .ToList();
+
+            var panels = new List<IMyTextPanel>();
+            program.GridTerminalSystem.GetBlocksOfType(panels);
+            _controlPanels = panels
+                .Where(p => p.IsSameConstructAs(program.Me) && p.CustomData.Contains(RefCustomData))
+                .ToList();
         }
-        
         
         public override void Update()
         {
+            CheckChargeMode();
+        }
+
+        public BatteriesChargeMode ChargeMode
+        {
+            get
+            {
+                return _chargeMode;
+            }
+            set
+            {
+                if (_chargeMode == value)
+                    _logger?.WriteText(new AlarmMessage
+                    {
+                        AlarmCode = AlarmCodes.CommandInfo,
+                        Message = $"Режим {value} уже установлен",
+                        System = this,
+                        Type = MessageType.Warning,
+                        IsActive = false
+                    });
+                switch (value)
+                {
+                    case BatteriesChargeMode.Auto:
+                        foreach (var battery in _batteries)
+                        {
+                            battery.ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode.Auto;
+                        }
+                        break;
+                    case BatteriesChargeMode.Discharge:
+                        foreach (var battery in _batteries)
+                        {
+                            battery.ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode.Discharge;
+                        }
+                        break;
+                    case BatteriesChargeMode.Recharge:
+                        foreach (var battery in _batteries)
+                        {
+                            battery.ChargeMode = Sandbox.ModAPI.Ingame.ChargeMode.Recharge;
+                        }
+                        break;
+                    case BatteriesChargeMode.Mixed:
+                    default:
+                        _logger?.WriteText(new AlarmMessage
+                        {
+                            AlarmCode = AlarmCodes.CommandInfo,
+                            Message = $"Нельзя установить {value}",
+                            System = this,
+                            Type = MessageType.Warning,
+                            IsActive = false
+                        });
+                        return;
+                }
+                _chargeMode = value;
+            }
+        }
+
+        private BatteriesChargeMode CheckChargeMode()
+        {
+            if (_batteries.All(battery => battery.ChargeMode == Sandbox.ModAPI.Ingame.ChargeMode.Auto))
+            {
+                ChargeMode = BatteriesChargeMode.Auto;
+                return ChargeMode;
+            }
             
+            if (_batteries.All(battery => battery.ChargeMode == Sandbox.ModAPI.Ingame.ChargeMode.Recharge))
+            {
+                ChargeMode = BatteriesChargeMode.Recharge;
+                return ChargeMode;
+            }
+
+            if (_batteries.All(battery => battery.ChargeMode == Sandbox.ModAPI.Ingame.ChargeMode.Discharge))
+            {
+                ChargeMode = BatteriesChargeMode.Discharge;
+                return ChargeMode;
+            }
+            
+            ChargeMode = BatteriesChargeMode.Mixed;
+            return ChargeMode;
         }
 
-        public decimal CalcCurrentWindTurbinesOutput()
+
+        private decimal CalcCurrentWindTurbinesOutput() => _windTurbines.Sum(windTurbine => (decimal)windTurbine.CurrentOutput);
+
+        private decimal CalcCurrentSolarPanelOutput() => _solarPanels.Sum(solarPanel => (decimal)solarPanel.CurrentOutput);
+        
+        private decimal CalcBatteriesOutput() => _batteries.Sum(battery => (decimal)battery.CurrentOutput);
+
+        private decimal CalcBatteriesCurrentCharge() => _batteries.Sum(battery => (decimal)battery.CurrentStoredPower);
+
+        private decimal CalcBatteriesMaxCharge() => _batteries.Max(battery => (decimal)battery.MaxStoredPower);
+
+        private decimal CalcBatteriesChargeLevel() => CalcBatteriesCurrentCharge() / CalcBatteriesMaxCharge();
+        
+        private decimal CalcBatteriesInput() => _batteries.Sum(battery => (decimal)battery.CurrentInput);
+        
+        private decimal CalcBatteriesMaxInput() => _batteries.Sum(battery => (decimal)battery.MaxInput);
+        
+        private decimal CalcBatteriesInputLevel() => CalcBatteriesCurrentCharge() / CalcBatteriesMaxCharge();
+
+        private decimal CalcHydrogenEngineOutput()
         {
-            return _windTurbines.Sum(windTurbine => (decimal)windTurbine.CurrentOutput);
+            //TODO: Рассчитать как получить правильное значение
+            return 0;
         }
 
-        public decimal CalcCurrentSolarPanelOutput()
+        private decimal CalcTotalEnergyOutput()
         {
-            return _solarPanels.Sum(solarPanel => (decimal)solarPanel.CurrentOutput);
+            decimal total = 0;
+            total += CalcCurrentWindTurbinesOutput();
+            total += CalcCurrentSolarPanelOutput();
+            total += CalcHydrogenEngineOutput();
+            total += CalcBatteriesOutput();
+            return total;
         }
     }
 }
