@@ -3,7 +3,7 @@ using System.Linq;
 using Sandbox.ModAPI.Ingame;
 using SpaceEngineers.Game.ModAPI.Ingame;
 
-namespace IngameScript.EnergySystem
+namespace IngameScript
 {
     public class EnergySystem : BaseSystem
     {
@@ -56,7 +56,10 @@ namespace IngameScript.EnergySystem
         {
             CheckChargeMode();
         }
-
+        
+        /// <summary>
+        /// Режим зарядки батарей
+        /// </summary>
         public BatteriesChargeMode ChargeMode
         {
             get
@@ -110,6 +113,10 @@ namespace IngameScript.EnergySystem
             }
         }
 
+        /// <summary>
+        /// Проверка режима зарядки батарей
+        /// </summary>
+        /// <returns>Режим зарядки батарей</returns>
         private BatteriesChargeMode CheckChargeMode()
         {
             if (_batteries.All(battery => battery.ChargeMode == Sandbox.ModAPI.Ingame.ChargeMode.Auto))
@@ -134,31 +141,153 @@ namespace IngameScript.EnergySystem
             return ChargeMode;
         }
 
-
+        #region Ветряные турбины
+        
+        /// <summary>
+        /// Вычисление текущей выходной мощности от ветряных турбин
+        /// </summary>
+        /// <returns>Текущая выходная мощность от ветряных турбин</returns>
         private decimal CalcCurrentWindTurbinesOutput() => _windTurbines.Sum(windTurbine => (decimal)windTurbine.CurrentOutput);
 
+        /// <summary>
+        /// Вычисление фактической максимальной выходной мощности от ветряных турбин
+        /// С учетом коэффициента места установки
+        /// </summary>
+        /// <returns>Фактическая максимальная мощность от ветряных турбин</returns>
+        private static decimal CalcActualMaxWindTurbinesOutput()
+        {
+            // TODO: Рассчитать фактическую максимальную мощность (с учетом места установки)
+            return 0;
+        }
+        
+        /// <summary>
+        /// Вычисление процента использования ветряных турбин
+        /// </summary>
+        /// <returns>Процент использования ветряных турбин</returns>
+        private decimal CalcWindTurbinesOutputRatio()
+        {
+            if (CalcActualMaxWindTurbinesOutput() == 0)
+                return 0;
+            return CalcCurrentWindTurbinesOutput() / CalcActualMaxWindTurbinesOutput();
+        }
+
+        #endregion
+        
+      
+        #region Солнечные панели
+
+        /// <summary>
+        /// Вычисление текущей выходной мощности от солнечных панелей
+        /// </summary>
+        /// <returns>Текущая выходная мощность от солнечных панелей</returns>
         private decimal CalcCurrentSolarPanelOutput() => _solarPanels.Sum(solarPanel => (decimal)solarPanel.CurrentOutput);
         
-        private decimal CalcBatteriesOutput() => _batteries.Sum(battery => (decimal)battery.CurrentOutput);
+        /// <summary>
+        /// Вычисление фактической максимальной выходной мощности от солнечных панелей
+        /// С учетом коэффициента места установки
+        /// </summary>
+        /// <returns>Фактическая максимальная мощность от солнечных панелей</returns>
+        private static decimal CalcActualMaxSolarPanelsOutput()
+        {
+            // TODO: Рассчитать фактическую максимальную мощность (с учетом места установки)
+            return 0;
+        }
 
+        /// <summary>
+        /// Вычисление процента использования солнечных панелей
+        /// </summary>
+        /// <returns>Процент использования солнечных панелей</returns>
+        private decimal CalcSolarPanelsOutputRatio()
+        {
+            if (CalcActualMaxSolarPanelsOutput() == 0)
+                return 0;
+            return CalcCurrentSolarPanelOutput() / CalcActualMaxSolarPanelsOutput();
+        }
+
+        #endregion
+
+      
+        
+        // Батареи
+
+        #region Батареи
+
+        /// <summary>
+        /// Вычисление выходной мощности от батарей
+        /// </summary>
+        /// <returns>Выходная мощность от батарей</returns>
+        private decimal CalcBatteriesOutput() => _batteries.Sum(battery => (decimal)battery.CurrentOutput);
+        
+        /// <summary>
+        /// Вычисление максимальной возможной выходной мощности
+        /// </summary>
+        /// <returns>Максимальная возможная выходная мощность</returns>
+        private decimal CalcBatteriesMaxOutput() => _batteries.Sum(battery => (decimal)battery.MaxOutput);
+        
+        /// <summary>
+        /// Вычисление отношение текущей мощности к выходной
+        /// </summary>
+        /// <returns>Отношение текущей мощности к выходной</returns>
+        private decimal CalcBatteriesOutputRatio() => CalcBatteriesOutput() / CalcBatteriesMaxOutput();
+
+        /// <summary>
+        /// Вычислить текущий заряд батарей
+        /// </summary>
+        /// <returns>Текущий заряд батарей, в MW</returns>
         private decimal CalcBatteriesCurrentCharge() => _batteries.Sum(battery => (decimal)battery.CurrentStoredPower);
 
+        /// <summary>
+        /// Вычислить максимальный возможный заряд батарей
+        /// </summary>
+        /// <returns>Максимальный возможный заряд батарей</returns>
         private decimal CalcBatteriesMaxCharge() => _batteries.Max(battery => (decimal)battery.MaxStoredPower);
 
+        /// <summary>
+        /// Вычислить текущий заряд батарей, в процентах
+        /// </summary>
+        /// <returns>Текущий заряд батарей, в процентах</returns>
         private decimal CalcBatteriesChargeLevel() => CalcBatteriesCurrentCharge() / CalcBatteriesMaxCharge();
         
+        /// <summary>
+        /// Вычислить входную мощность на зарядку батарей, в MW
+        /// </summary>
+        /// <returns>Входная мощность на зарядку батарей, в MW</returns>
         private decimal CalcBatteriesInput() => _batteries.Sum(battery => (decimal)battery.CurrentInput);
         
+        /// <summary>
+        /// Вычислить максимально возможную мощность на зарядку батарей
+        /// </summary>
+        /// <returns>Максимально возможная мощность на зарядку батарей</returns>
         private decimal CalcBatteriesMaxInput() => _batteries.Sum(battery => (decimal)battery.MaxInput);
         
+        /// <summary>
+        /// Вычислить входную мощность на зарядку батарей, в процентах
+        /// </summary>
+        /// <returns>Входная мощность на зарядку батарей, в процентах</returns>
         private decimal CalcBatteriesInputLevel() => CalcBatteriesCurrentCharge() / CalcBatteriesMaxCharge();
 
+        #endregion
+        
+        #region Водородные движки
+
+        /// <summary>
+        /// Вычисление выходной мощности от водородных движков
+        /// </summary>
+        /// <returns></returns>
         private static decimal CalcHydrogenEngineOutput()
         {
             //TODO: Рассчитать как получить правильное значение
             return 0;
         }
 
+        #endregion
+        
+        #region Общие данные
+
+        /// <summary>
+        /// Вычисление общее выходная мощность энергосистемы
+        /// </summary>
+        /// <returns>Общая выходная мощность энергосистемы</returns>
         private decimal CalcTotalEnergyOutput()
         {
             decimal total = 0;
@@ -168,5 +297,7 @@ namespace IngameScript.EnergySystem
             total += CalcBatteriesOutput();
             return total;
         }
+
+        #endregion
     }
 }

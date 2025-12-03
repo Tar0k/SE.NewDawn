@@ -1,4 +1,4 @@
-﻿namespace IngameScript.EnergySystem
+﻿namespace IngameScript
 {
     public enum BatteriesChargeMode
     {
