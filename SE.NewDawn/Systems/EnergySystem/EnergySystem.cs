@@ -37,8 +37,12 @@ namespace IngameScript.EnergySystem
             program.GridTerminalSystem.GetBlocks(_blocks);
             _hydrogenEngines = _blocks
                 .Where(b =>
-                    b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/LargeHydrogenEngine" 
-                    || b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/SmallHydrogenEngine")
+                    b.IsSameConstructAs(program.Me)
+                    && (
+                        b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/LargeHydrogenEngine" 
+                        || b.DefinitionDisplayNameText == "MyObjectBuilder_HydrogenEngine/SmallHydrogenEngine"
+                        )
+                    )
                 .ToList();
 
             var panels = new List<IMyTextPanel>();
@@ -149,7 +153,7 @@ namespace IngameScript.EnergySystem
         
         private decimal CalcBatteriesInputLevel() => CalcBatteriesCurrentCharge() / CalcBatteriesMaxCharge();
 
-        private decimal CalcHydrogenEngineOutput()
+        private static decimal CalcHydrogenEngineOutput()
         {
             //TODO: Рассчитать как получить правильное значение
             return 0;
