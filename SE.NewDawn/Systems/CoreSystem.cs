@@ -15,6 +15,7 @@ namespace IngameScript
         private readonly HydrogenSystem _hydrogenSystem;
         private readonly EnergySystem _energySystem;
         private readonly SafetySystem _safetySystem;
+        private readonly CommunicationSystem _communicationSystem;
         private readonly IEnumerable<BaseSystem> _systems;
 
         /// <summary>
@@ -37,9 +38,11 @@ namespace IngameScript
             _safetySystem = new SafetySystem(program, this, _logSystem);
             _safetySystem.EnemyDetected += OnSystemAlarmTriggered;
             
+            _communicationSystem = new CommunicationSystem(program, this, _logSystem);
+            
             _systems = new List<BaseSystem>
             {
-                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem, _energySystem
+                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem, _energySystem, _communicationSystem
             };
         }
         
