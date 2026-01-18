@@ -38,13 +38,13 @@ namespace IngameScript
             program.GridTerminalSystem.GetBlocksOfType(_laserAntennas);
             _laserAntennas = _laserAntennas.Where(b => b.IsSameConstructAs(program.Me)).ToList();
             
-            AvailableCommands = new Dictionary<string, Action>
+            AvailableCommands = new Dictionary<string, Action<List<string>>>
             {
-                { "SendUnicastMessage", () =>
+                { "SendUnicastMessage", _ =>
                 {
                     SendUnicastMessage(0, "TEST unicast message");
                 }},
-                { "SendBroadcastMessage", () =>
+                { "SendBroadcastMessage", _ =>
                 {
                     SendBroadcastMessage("TEST broadcast message");
                 }}

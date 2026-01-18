@@ -57,38 +57,38 @@ namespace IngameScript
             _coreSystem.UpdateSystems += Update;
             _coreSystem.AlarmTriggered += SwitchAlarm;
             _logger = logger;
-            AvailableCommands = new Dictionary<string, Action>
+            AvailableCommands = new Dictionary<string, Action<List<string>>>
             {
-                { "TurnOff", () =>
+                { "TurnOff", _ =>
                     {
                         SoundState = SoundStates.Off;
                     }
                 },
-                { "TurnOn", () =>
+                { "TurnOn", _ =>
                     {
                         SoundState = SoundStates.On;
                     }
                 },
                 {
-                    "AlarmOn", () =>
+                    "AlarmOn", _ =>
                     {
                         SoundState = SoundStates.Alarm;
                     }
                 },
-                { "AlarmOff", AlarmOff },
+                { "AlarmOff", _ => AlarmOff() },
                 {
-                    "Default", () =>
+                    "Default", _ =>
                     {
                         SoundState = SoundStates.Default;
                     }
                 },
                 {
-                    "Stop", () =>
+                    "Stop", _ =>
                     {
                         SoundState = SoundStates.Stop;
                     }
                 },
-                { "SwitchAlarm", SwitchAlarm }
+                { "SwitchAlarm", _ => SwitchAlarm() }
             };
             program.GridTerminalSystem.GetBlocksOfType(_soundBlocks);
             Default();

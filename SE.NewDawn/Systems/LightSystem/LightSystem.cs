@@ -26,32 +26,32 @@ namespace IngameScript
             _coreSystem.UpdateSystems += Update;
             _coreSystem.AlarmTriggered += SwitchAlarm;
             _logger = logger;
-            AvailableCommands = new Dictionary<string, Action>
+            AvailableCommands = new Dictionary<string, Action<List<string>>>
             {
-                { "TurnOn", () =>
+                { "TurnOn", _ =>
                     {
                         LightState = LightStates.On;
                     }
                 },
-                { "TurnOff", () =>
+                { "TurnOff", _ =>
                     {
                         LightState = LightStates.Off;
                     }
                 },
-                { "SwitchLight", SwitchLight },
-                { "Default", () => 
+                { "SwitchLight", _ => SwitchLight() },
+                { "Default", _ => 
                     {
                         LightState = LightStates.Default;
                     }
                 },
                 {
-                    "AlarmOn", () =>
+                    "AlarmOn", _ =>
                     {
                         LightState = LightStates.Alarm;
                     }
                 },
-                { "AlarmOff", AlarmOff },
-                { "SwitchAlarm", SwitchAlarm }
+                { "AlarmOff", _ => AlarmOff() },
+                { "SwitchAlarm", _ => SwitchAlarm() }
             };
             
             TurnOn();

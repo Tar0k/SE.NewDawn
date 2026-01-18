@@ -6,12 +6,12 @@ namespace IngameScript
 {
     public abstract class BaseSystem
     {
-        protected Dictionary<string, Action> AvailableCommands;
+        protected Dictionary<string, Action<List<string>>> AvailableCommands;
         protected ILogger Logger;
         
         protected BaseSystem()
         {
-            AvailableCommands = new Dictionary<string, Action>();
+            AvailableCommands = new Dictionary<string, Action<List<string>>>();
             SystemName = GetType().Name;
             RefCustomData = GetType().Name;
         }
@@ -45,7 +45,7 @@ namespace IngameScript
         {
             // Проверки полученной команды на формат
             var cmd = command.Split(' ');
-            if (cmd.Length != 2)
+            if (cmd.Length < 2)
             {
                 Logger?.WriteText(new AlarmMessage
                 {
@@ -72,10 +72,19 @@ namespace IngameScript
             }
             
             // Исполнение команды
-            Action availableCommand;
+            Action<List<string>> availableCommand;
             if (AvailableCommands.TryGetValue(cmd[1], out availableCommand))
             {
-                availableCommand.Invoke();
+                if (cmd.Length > 2)
+                {
+                    var arguments = cmd.Skip(2).ToList();
+                    availableCommand.Invoke(arguments);
+                }
+                else
+                {
+                    availableCommand.Invoke(new List<string>());
+                }
+                
                 Logger?.WriteText(new AlarmMessage
                 {
                     AlarmCode = AlarmCodes.CommandInfo,
