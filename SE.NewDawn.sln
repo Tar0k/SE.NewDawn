@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SE.NewDawn", "SE.NewDawn\SE.NewDawn.csproj", "{5525BDDC-D01D-482E-8AA0-6BF0BD1FEC59}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SE.Collector", "SE.Collector\SE.Collector.csproj", "{DD14BE99-9781-4DEC-8E2F-E9EE805F82AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -12,5 +14,9 @@ Global
 		{5525BDDC-D01D-482E-8AA0-6BF0BD1FEC59}.Debug|x64.Build.0 = Debug|x64
 		{5525BDDC-D01D-482E-8AA0-6BF0BD1FEC59}.Release|x64.ActiveCfg = Release|x64
 		{5525BDDC-D01D-482E-8AA0-6BF0BD1FEC59}.Release|x64.Build.0 = Release|x64
+		{DD14BE99-9781-4DEC-8E2F-E9EE805F82AF}.Debug|x64.ActiveCfg = Debug|x64
+		{DD14BE99-9781-4DEC-8E2F-E9EE805F82AF}.Debug|x64.Build.0 = Debug|x64
+		{DD14BE99-9781-4DEC-8E2F-E9EE805F82AF}.Release|x64.ActiveCfg = Release|x64
+		{DD14BE99-9781-4DEC-8E2F-E9EE805F82AF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 EndGlobal
