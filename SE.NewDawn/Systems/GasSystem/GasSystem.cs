@@ -9,29 +9,64 @@ namespace IngameScript
     /// <summary>
     /// Система контроля водорода
     /// </summary>
-    public class HydrogenSystem : BaseSystem
+    public class GasSystem : BaseSystem
     {
+        private static readonly string[] HydrogenTanksDefinitions = {
+            "MyObjectBuilder_OxygenTank/LargeHydrogenTank",
+            "MyObjectBuilder_OxygenTank/LargeHydrogenTankSmall",
+            "MyObjectBuilder_OxygenTank/LargeHydrogenTankIndustrial",
+            "MyObjectBuilder_OxygenTank/SmallHydrogenTank",
+            "MyObjectBuilder_OxygenTank/SmallHydrogenTankLab",
+            "MyObjectBuilder_OxygenTank/SmallHydrogenTankSmall"
+        };
+
+        private static readonly string[] OxygenTankDefinitions =
+        {
+            "MyObjectBuilder_OxygenTank/LargeBlockOxygenTankLab",
+            "MyObjectBuilder_OxygenTank/OxygenTankSmall",
+            "MyObjectBuilder_OxygenTank/SmallOxygenTankSmall"
+        };
+
         private readonly CoreSystem _coreSystem;
         private readonly ILogger _logger;
         
-        private readonly List<IMyGasTank> _hydrogenTanks = new List<IMyGasTank>();
+        private readonly List<IMyGasTank> _hydrogenTanks;
+        private readonly List<IMyGasTank> _oxygenTanks;
+        
         private bool _firstRun = true;
         private double _warningLevel;
         private double _alarmLevel;
         private readonly List<IMyTextPanel> _controlPanels;
         private bool _stockPile;
         private bool _autoRefillBottles;
+        
+        public GasSystemSettings Settings { get; set; } = new GasSystemSettings();
 
-        public event Action<decimal> WarningLevelTriggered;
-        public event Action<decimal> AlarmLevelTriggered;
+        public event Action<decimal> HydrogenWarningLevelTriggered;
+        public event Action<decimal> HydrogenAlarmLevelTriggered;
 
-        public HydrogenSystem(Program program, CoreSystem core, ILogger logger, double warningLevel = 0.2, double alarmLevel = 0.1) : base(logger)
+        public event Action<decimal> OxygenWarningLevelTriggered;
+        public event Action<decimal> OxygenAlarmLevelTriggered;
+
+        public GasSystem(Program program, CoreSystem core, ILogger logger, GasSystemSettings gasSystemSettings = null) : base(logger)
         {
             SystemName = "Система контроля водорода";
-            program.GridTerminalSystem.GetBlocksOfType(_hydrogenTanks);
-            _hydrogenTanks = _hydrogenTanks
-                .Where(t => t.IsSameConstructAs(program.Me))
+
+            if (gasSystemSettings != null)
+                Settings = gasSystemSettings;
+            
+            var tanks = new List<IMyGasTank>();
+            program.GridTerminalSystem.GetBlocksOfType(tanks);
+            tanks = tanks.Where(t => t.IsSameConstructAs(program.Me)).ToList();
+            
+            _hydrogenTanks = tanks
+                .Where(t => HydrogenTanksDefinitions.Contains(t.DefinitionDisplayNameText))
                 .ToList();
+
+            _oxygenTanks = tanks
+                .Where(t => OxygenTankDefinitions.Contains(t.DefinitionDisplayNameText))
+                .ToList();
+            
             _coreSystem = core;
             _coreSystem.UpdateSystems += Update;
             _logger = logger;
@@ -41,9 +76,6 @@ namespace IngameScript
             _controlPanels = panels
                 .Where(p => p.IsSameConstructAs(program.Me) && p.CustomData.Contains(RefCustomData))
                 .ToList();
-            
-            WarningLevel = warningLevel;
-            AlarmLevel = alarmLevel;
             
             CheckFirstRun();
             CheckAvailableHydrogenTanks();
@@ -56,34 +88,34 @@ namespace IngameScript
             switch (SystemState)
             {
                 case SystemStates.Active:
-                    if (Level < _alarmLevel)
+                    if (HydrogenLevel < Settings.HydrogenAlarmLevel)
                     {
-                        AlarmLevelTriggered?.Invoke(CurrentCapacity);
+                        HydrogenAlarmLevelTriggered?.Invoke(CurrentHydrogenCapacity);
                         SystemState = SystemStates.Alarm;
                     }
-                    if (Level < _warningLevel)
+                    if (HydrogenLevel < Settings.HydrogenWarningLevel)
                     {
-                        WarningLevelTriggered?.Invoke(CurrentCapacity);
+                        HydrogenWarningLevelTriggered?.Invoke(CurrentHydrogenCapacity);
                         SystemState = SystemStates.Warning;
                     }
                     break;
                 case SystemStates.Warning:
-                    if (Level < _alarmLevel)
+                    if (HydrogenLevel < Settings.HydrogenAlarmLevel)
                     {
-                        AlarmLevelTriggered?.Invoke(CurrentCapacity);
+                        HydrogenAlarmLevelTriggered?.Invoke(CurrentHydrogenCapacity);
                         SystemState = SystemStates.Alarm;
                     }
-                    if (Level > _warningLevel)
+                    if (HydrogenLevel > Settings.HydrogenWarningLevel)
                     {
                         SystemState = SystemStates.Active;
                     }
                     break;
                 case SystemStates.Alarm:
-                    if (Level > _alarmLevel)
+                    if (HydrogenLevel > Settings.HydrogenAlarmLevel)
                     {
-                        if (Level < _warningLevel)
+                        if (HydrogenLevel < Settings.HydrogenWarningLevel)
                         {
-                            WarningLevelTriggered?.Invoke(CurrentCapacity);
+                            HydrogenWarningLevelTriggered?.Invoke(CurrentHydrogenCapacity);
                             SystemState = SystemStates.Warning;
                         }
                         else
@@ -103,23 +135,23 @@ namespace IngameScript
         /// <summary>
         /// Максимальная емкость, в литрах
         /// </summary>
-        public decimal MaxCapacity => (decimal)_hydrogenTanks.Select(t => t.Capacity).Sum();
+        public decimal MaxHydrogenCapacity => (decimal)_hydrogenTanks.Select(t => t.Capacity).Sum();
         
         /// <summary>
         /// Фактический водород, в литрах
         /// </summary>
-        public decimal CurrentCapacity => (decimal)_hydrogenTanks.Select(CalcTankCurrentCapacity).Sum();
+        public decimal CurrentHydrogenCapacity => (decimal)_hydrogenTanks.Select(CalcTankCurrentCapacity).Sum();
 
         /// <summary>
         /// Текущая заполненность, в процентах
         /// </summary>
-        public double Level
+        public double HydrogenLevel
         {
             get
             {
-                if (MaxCapacity == 0)
+                if (MaxHydrogenCapacity == 0)
                     return 0;
-                return (double)(CurrentCapacity / MaxCapacity);
+                return (double)(CurrentHydrogenCapacity / MaxHydrogenCapacity);
             }
         }
 
@@ -289,7 +321,7 @@ namespace IngameScript
                 var str = new StringBuilder();
                 str.AppendLine($"{SystemName}");
                 str.AppendLine("----------------");
-                str.AppendLine($"Общий: {Math.Round(Level * 100, 2)}%,  {CurrentCapacity} / {MaxCapacity}");
+                str.AppendLine($"Общий: {Math.Round(HydrogenLevel * 100, 2)}%,  {CurrentHydrogenCapacity} / {MaxHydrogenCapacity}");
                 str.AppendLine("----------------");
                 foreach (var hydrogenTank in _hydrogenTanks)
                 {

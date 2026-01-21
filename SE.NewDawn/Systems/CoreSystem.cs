@@ -12,7 +12,7 @@ namespace IngameScript
         private readonly LogSystem _logSystem;
         private readonly LightSystem _lightSystem;
         private readonly SoundSystem _soundSystem;
-        private readonly HydrogenSystem _hydrogenSystem;
+        private readonly GasSystem _gasSystem;
         private readonly EnergySystem _energySystem;
         private readonly SafetySystem _safetySystem;
         private readonly IEnumerable<BaseSystem> _systems;
@@ -31,7 +31,7 @@ namespace IngameScript
             
             _lightSystem = new LightSystem(program, this, _logSystem);
             _soundSystem = new SoundSystem(program, this, _logSystem);
-            _hydrogenSystem = new HydrogenSystem(program, this, _logSystem);
+            _gasSystem = new GasSystem(program, this, _logSystem);
             _energySystem = new EnergySystem(program, this, _logSystem);
             
             _safetySystem = new SafetySystem(program, this, _logSystem);
@@ -39,7 +39,7 @@ namespace IngameScript
             
             _systems = new List<BaseSystem>
             {
-                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem, _energySystem
+                _logSystem, _lightSystem,  _soundSystem, _gasSystem, _safetySystem, _energySystem
             };
         }
         
