@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SpaceEngineers.Game.ModAPI.Ingame;
 
 namespace IngameScript
@@ -53,6 +54,7 @@ namespace IngameScript
         {
             SystemName = "Звуковая система";
             program.GridTerminalSystem.GetBlocksOfType(_soundBlocks);
+            _soundBlocks = _soundBlocks.Where(s => s.IsSameConstructAs(program.Me)).ToList();
             _coreSystem = core;
             _coreSystem.UpdateSystems += Update;
             _coreSystem.AlarmTriggered += SwitchAlarm;
@@ -222,7 +224,7 @@ namespace IngameScript
                 _logger?.WriteText(new AlarmMessage
                 {
                     AlarmCode = AlarmCodes.StartupInfo,
-                    Message = $"Инициализировано {_soundBlocks.Count} источников света",
+                    Message = $"Инициализировано {_soundBlocks.Count} динамиков",
                     System = this,
                     Type = MessageType.Info,
                     IsActive = true

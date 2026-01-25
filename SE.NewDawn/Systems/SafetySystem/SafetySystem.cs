@@ -13,6 +13,7 @@ namespace IngameScript
     {
         private readonly CoreSystem _coreSystem;
         private readonly ILogger _logger;
+        private readonly Program _program;
         private readonly List<IMyLargeTurretBase> _turrets;
         private readonly List<SafeDoor> _safeDoors = new List<SafeDoor>();
         private bool _firstRun = true;
@@ -31,12 +32,13 @@ namespace IngameScript
             SystemName = "Система безопасности";
             _coreSystem = coreSystem;
             _coreSystem.UpdateSystems += Update;
+            _program = program;
             
             _logger = logger;
             var blocks = new List<IMyTerminalBlock>();
             program.GridTerminalSystem.GetBlocks(blocks);
             var doors = blocks.OfType<IMyDoor>()
-                .Where(b => b.CustomData.Contains(RefCustomData)).ToList();
+                .Where(b => b.IsSameConstructAs(program.Me) && b.CustomData.Contains(RefCustomData)).ToList();
 
             foreach (var safeDoor in doors.Select(door => new SafeDoor(door, this, _logger)))
             {
@@ -44,14 +46,17 @@ namespace IngameScript
                 _safeDoors.Add(safeDoor);
             }
             
-            _turrets = blocks.OfType<IMyLargeTurretBase>().ToList();
+            _turrets = blocks
+                .OfType<IMyLargeTurretBase>()
+                .Where(t => t.IsSameConstructAs(program.Me))
+                .ToList();
         }
         
         /// <summary>
         /// Проверяет есть ли у турелей цели.
         /// </summary>
         /// <returns>Найдена цель.</returns>
-        private bool CheckTurrets() => _turrets.Any(turret => turret.IsAimed || turret.HasTarget);
+        private bool CheckTurrets() => _turrets.Any(turret => turret.HasTarget);
         
         
         public override void Update()
@@ -61,6 +66,26 @@ namespace IngameScript
             
             CheckAvailableTurrets();
             CheckAvailableSafeDoors();
+
+            if (_enemyDetected)
+            {
+                if (!CheckTurrets())
+                {
+                    var alarmMessage = new AlarmMessage
+                    {
+                        AlarmCode = AlarmCodes.EnemyDetected,
+                        Message = "Обнаружен противник",
+                        System = this,
+                        Type = MessageType.Error,
+                        IsActive = false
+                    };
+                    EnemyDetected?.Invoke(alarmMessage);
+                    _logger.WriteText(alarmMessage);
+                
+                    _enemyDetected = false;
+                }
+            }
+            
             
             if (CheckTurrets())
             {
@@ -77,24 +102,6 @@ namespace IngameScript
                     EnemyDetected?.Invoke(alarmMessage);
                     _logger.WriteText(alarmMessage);
                     _enemyDetected = true;
-                }
-            }
-            else
-            {
-                if (_enemyDetected)
-                {
-                    var alarmMessage = new AlarmMessage
-                    {
-                        AlarmCode = AlarmCodes.EnemyDetected,
-                        Message = "Обнаружен противник",
-                        System = this,
-                        Type = MessageType.Error,
-                        IsActive = false
-                    };
-                    EnemyDetected?.Invoke(alarmMessage);
-                    _logger.WriteText(alarmMessage);
-                
-                    _enemyDetected = false;
                 }
             }
             UpdateDoors?.Invoke();

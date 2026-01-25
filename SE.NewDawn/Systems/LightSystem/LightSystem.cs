@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using VRageMath;
 
@@ -16,12 +17,16 @@ namespace IngameScript
         private readonly List<IMyInteriorLight> _lights = new List<IMyInteriorLight>();
         private bool _firstRun = true;
         private bool _lightOn = true;
-        private LightStates _lightState; 
+        private LightStates _lightState;
+        private Program _program;
         
         public LightSystem(Program program, CoreSystem core, ILogger logger) : base(logger)
         {
+            _program = program;
+            
             SystemName = "Управление светом";
             program.GridTerminalSystem.GetBlocksOfType(_lights);
+            _lights = _lights.Where(l => l.IsSameConstructAs(program.Me)).ToList();
             _coreSystem = core;
             _coreSystem.UpdateSystems += Update;
             _coreSystem.AlarmTriggered += SwitchAlarm;

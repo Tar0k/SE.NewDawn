@@ -39,7 +39,7 @@ namespace IngameScript
             
             _systems = new List<BaseSystem>
             {
-                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem, _energySystem
+                _logSystem, _lightSystem,  _soundSystem, _hydrogenSystem, _safetySystem, _energySystem, _hydrogenSystem
             };
         }
         
